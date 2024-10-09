@@ -1,19 +1,43 @@
 import React, {useState,useEffect} from "react";
 
-const BookingConfirm=({seatsData,seatsForBooking,setShowBookingConfirm})=>{
+const BookingConfirm=({seatsData, fetchSeatData, seatsForBooking,setShowBookingConfirm,username})=>{
   const [successPopup,setSuccessPopup]=useState(false);
 
   const handleConfirmPress=()=>{
-    console.log("hereaa");
-    setSuccessPopup(true);
-    setTimeout(()=>{
-      setSuccessPopup(false);
-      setShowBookingConfirm(false);
-    },3300)
+    let sendData={
+      username:username,
+      seatIdArray:seatsForBooking
+    }
+    fetch(process.env.REACT_APP_api_url+'/bookSeats',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify(sendData)
+    })
+    .then((response)=>{
+      if(!response.ok){
+        throw new Error("Response was not ok");
+      }
+      return response.json();
+    })
+    .then((data)=>{
+      if(data){
+        setSuccessPopup(true);
+        fetchSeatData();
+        setTimeout(()=>{
+          setSuccessPopup(false);
+          setShowBookingConfirm(false);
+        },2500)
+      }
+    })
+    .catch((err)=>{
+      console.error('Error - ',err);
+    })
   } 
 
   return(
-    <div style={{display:'flex',backgroundColor:'rgba(0, 0, 0, 0.286)',position:'absolute',top:0,left:0,right:0,bottom:0,justifyContent:'center',alignItems:'center'}}>
+    <div style={{display:'flex',backgroundColor:'rgba(0, 0, 0, 0.286)',position:'fixed',top:0,left:0,right:0,bottom:0,justifyContent:'center',alignItems:'center'}}>
       <div style={{backgroundColor:'white',padding:10,borderRadius:10,maxWidth:'90%'}}>
         <div style={{fontSize:18,color:'darkblue',textAlign:'center'}}>
           The following seats will be booked
@@ -25,9 +49,9 @@ const BookingConfirm=({seatsData,seatsForBooking,setShowBookingConfirm})=>{
               seatsData.map((seat)=>{
                 return (
                   <div style={{}}>
-                    <div className={`seat ${seatsForBooking.includes(seat.id)?'seat-for-booking':''}`}>
+                    <div className={`seat ${seatsForBooking.includes(seat.seatId)?'seat-for-booking':'seat-greyed'}`}>
                       <div>
-                        {seat.id}
+                        {seat.seatId}
                       </div>
                     </div>
                   </div>
@@ -38,11 +62,11 @@ const BookingConfirm=({seatsData,seatsForBooking,setShowBookingConfirm})=>{
         </div>
         
         <div style={{display:'flex',justifyContent:'center',marginTop:20}}>
-          <div>
-            <div style={{border:'1px solid black',padding:'8px 20px',background:'darkblue',color:'white',borderRadius:4}} onClick={handleConfirmPress}>
+          <div style={{display:'flex',gap:18}}>
+            <div style={{border:'1px solid black',padding:'8px 20px',background:'darkblue',color:'white',borderRadius:4,cursor:'pointer'}} onClick={handleConfirmPress}>
               Confirm
             </div>
-            <div style={{border:'1px solid darkblue',padding:'8px 20px',textAlign:'center',color:'darkblue',borderRadius:4,marginTop:5}} onClick={()=>{setShowBookingConfirm(false)}}>
+            <div style={{border:'1px solid darkblue',padding:'8px 25px',textAlign:'center',color:'darkblue',borderRadius:4,cursor:'pointer'}} onClick={()=>{setShowBookingConfirm(false)}}>
               Close
             </div>
           </div>
@@ -50,7 +74,7 @@ const BookingConfirm=({seatsData,seatsForBooking,setShowBookingConfirm})=>{
       </div>
       
       {successPopup && 
-        <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,backgroundColor:'rgba(0, 0, 0, 0.286)',display:'flex',justifyContent:'center',alignItems:'center'}}>
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,backgroundColor:'rgba(0, 0, 0, 0.286)',display:'flex',justifyContent:'center',alignItems:'center'}}>
           <div style={{backgroundColor:'white',padding:20,borderRadius:7}}>
             
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-8" style={{color:'green',width:200}}>
